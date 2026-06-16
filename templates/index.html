@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BQ Pulse - Google BigQuery Release Notes Hub & Broadcaster</title>
+    <meta name="description" content="Stay updated with the latest Google BigQuery releases, parse updates by category, search changes, and instantly broadcast updates to your audience.">
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Background Glow Elements -->
+    <div class="bg-glow bg-glow-blue"></div>
+    <div class="bg-glow bg-glow-red"></div>
+
+    <!-- App Shell -->
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header" id="app-header">
+            <div class="header-brand">
+                <div class="brand-logo">
+                    <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="#4285F4" d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1>BQ Pulse</h1>
+                    <span class="brand-subtitle">BigQuery Release Radar</span>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <div class="status-indicator" id="status-indicator">
+                    <span class="status-dot"></span>
+                    <span class="status-text" id="status-text">Loading feed...</span>
+                </div>
+                <button class="btn btn-primary btn-refresh" id="btn-refresh" title="Refresh Release Notes">
+                    <svg class="icon-refresh" id="refresh-icon-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                    </svg>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <div class="app-content">
+            <!-- Sidebar (Analytics & Broadcaster Log) -->
+            <aside class="app-sidebar" id="app-sidebar">
+                <!-- Info Card -->
+                <div class="sidebar-card info-card">
+                    <h3>About BQ Pulse</h3>
+                    <p>Track, filter, and share Google BigQuery release notes. Easily compose and broadcast update summaries directly to Twitter/X to keep your network informed.</p>
+                </div>
+
+                <!-- Stats Card -->
+                <div class="sidebar-card stats-card" id="stats-card">
+                    <h3>Analytics Summary</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item total">
+                            <span class="stat-value" id="stat-total-count">0</span>
+                            <span class="stat-label">Total Notes</span>
+                        </div>
+                        <div class="stat-item category-stat" data-category="Feature">
+                            <span class="stat-value" id="stat-feature-count">0</span>
+                            <span class="stat-label">Features</span>
+                        </div>
+                        <div class="stat-item category-stat" data-category="Issue">
+                            <span class="stat-value" id="stat-issue-count">0</span>
+                            <span class="stat-label">Issues</span>
+                        </div>
+                        <div class="stat-item category-stat" data-category="Deprecation">
+                            <span class="stat-value" id="stat-deprecation-count">0</span>
+                            <span class="stat-label">Deprecations</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Broadcast History -->
+                <div class="sidebar-card history-card" id="history-card">
+                    <div class="card-header">
+                        <h3>Broadcast History</h3>
+                        <button class="btn-clear-history" id="btn-clear-history" title="Clear History">Clear</button>
+                    </div>
+                    <div class="history-list" id="history-list">
+                        <div class="empty-history-text">No updates broadcasted yet. Selected tweets will be logged here.</div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="feed-section">
+                <!-- Controls Toolbar -->
+                <div class="toolbar-card" id="toolbar-card">
+                    <div class="search-box">
+                        <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" id="search-input" placeholder="Search updates (e.g. Gemini, JSON, SQL)..." aria-label="Search release notes">
+                        <button class="search-clear-btn" id="search-clear-btn" style="display: none;">&times;</button>
+                    </div>
+                    
+                    <div class="toolbar-filters">
+                        <div class="filter-group" id="filter-group">
+                            <button class="filter-btn active" data-filter="all">All Updates</button>
+                            <button class="filter-btn" data-filter="Feature">
+                                <span class="badge badge-feature"></span> Features
+                            </button>
+                            <button class="filter-btn" data-filter="Issue">
+                                <span class="badge badge-issue"></span> Issues
+                            </button>
+                            <button class="filter-btn" data-filter="Deprecation">
+                                <span class="badge badge-deprecation"></span> Deprecations
+                            </button>
+                            <button class="filter-btn" data-filter="other">Others</button>
+                        </div>
+                        
+                        <div class="sort-box">
+                            <label for="sort-select">Sort:</label>
+                            <select id="sort-select" class="sort-select">
+                                <option value="newest">Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feed Container -->
+                <div class="feed-container" id="feed-container">
+                    <!-- Skeletal Loader (Shown while loading) -->
+                    <div class="skeleton-feed" id="skeleton-feed">
+                        <div class="skeleton-card">
+                            <div class="skeleton-header"></div>
+                            <div class="skeleton-body"></div>
+                            <div class="skeleton-footer"></div>
+                        </div>
+                        <div class="skeleton-card">
+                            <div class="skeleton-header"></div>
+                            <div class="skeleton-body"></div>
+                            <div class="skeleton-footer"></div>
+                        </div>
+                        <div class="skeleton-card">
+                            <div class="skeleton-header"></div>
+                            <div class="skeleton-body"></div>
+                            <div class="skeleton-footer"></div>
+                        </div>
+                    </div>
+
+                    <!-- Actual Notes List -->
+                    <div class="notes-list" id="notes-list" style="display: none;"></div>
+
+                    <!-- Empty State -->
+                    <div class="empty-state" id="empty-state" style="display: none;">
+                        <div class="empty-state-icon">🔍</div>
+                        <h3>No release notes match your search</h3>
+                        <p>Try checking your spelling, removing filters, or resetting the search input.</p>
+                        <button class="btn btn-secondary" id="btn-reset-filters">Reset Filters</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Tweet Composer Modal -->
+    <div class="modal-backdrop" id="tweet-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="#1DA1F2">
+                        <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                    </svg>
+                    <h2>Compose Tweet</h2>
+                </div>
+                <button class="modal-close" id="btn-close-modal">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- Source Update Card Context -->
+                <div class="tweet-context-card">
+                    <span class="context-badge" id="context-badge">Feature</span>
+                    <span class="context-date" id="context-date">June 15, 2026</span>
+                    <div class="context-text" id="context-text">Loading snippet...</div>
+                </div>
+
+                <div class="tweet-input-wrapper">
+                    <label for="tweet-textarea" class="sr-only">Tweet content</label>
+                    <textarea id="tweet-textarea" placeholder="What's happening?" maxlength="280"></textarea>
+                    
+                    <div class="tweet-char-indicator">
+                        <svg class="progress-ring" width="30" height="30">
+                            <circle class="progress-ring-bg" stroke="#1e293b" stroke-width="3" fill="transparent" r="11" cx="15" cy="15" />
+                            <circle class="progress-ring-circle" id="char-progress-circle" stroke="#1DA1F2" stroke-width="3" fill="transparent" r="11" cx="15" cy="15" />
+                        </svg>
+                        <span class="char-count" id="char-count">280</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btn-cancel-tweet">Cancel</button>
+                <div class="footer-action-group">
+                    <button class="btn btn-secondary btn-save-local" id="btn-save-local" title="Log in your dashboard timeline without posting to Twitter">Save to History</button>
+                    <button class="btn btn-tweet" id="btn-post-tweet">
+                        <span>Post to X / Twitter</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
