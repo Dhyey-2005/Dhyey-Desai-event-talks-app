@@ -22,6 +22,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterGroup = document.getElementById('filter-group');
     const sortSelect = document.getElementById('sort-select');
     const btnResetFilters = document.getElementById('btn-reset-filters');
+    const btnThemeToggle = document.getElementById('btn-theme-toggle');
+    const iconSun = btnThemeToggle.querySelector('.icon-sun');
+    const iconMoon = btnThemeToggle.querySelector('.icon-moon');
     
     // Stats elements
     const statTotalCount = document.getElementById('stat-total-count');
@@ -587,6 +590,33 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.removeItem('bq_broadcast_history');
             renderHistory();
             showToast('Broadcast history cleared.', 'info');
+        }
+    });
+
+    // Theme Management (Light / Dark Mode)
+    const savedTheme = localStorage.getItem('bq_theme') || 'dark';
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        iconSun.style.display = 'none';
+        iconMoon.style.display = 'block';
+    } else {
+        document.body.classList.remove('light-mode');
+        iconSun.style.display = 'block';
+        iconMoon.style.display = 'none';
+    }
+
+    btnThemeToggle.addEventListener('click', () => {
+        const isLight = document.body.classList.toggle('light-mode');
+        if (isLight) {
+            localStorage.setItem('bq_theme', 'light');
+            iconSun.style.display = 'none';
+            iconMoon.style.display = 'block';
+            showToast('Swapped to Light Theme', 'success');
+        } else {
+            localStorage.setItem('bq_theme', 'dark');
+            iconSun.style.display = 'block';
+            iconMoon.style.display = 'none';
+            showToast('Swapped to Dark Theme', 'success');
         }
     });
 

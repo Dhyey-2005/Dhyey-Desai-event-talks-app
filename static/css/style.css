@@ -41,6 +41,87 @@
     --radius-sm: 6px;
 }
 
+/* Light Mode Variables Override */
+body.light-mode {
+    --bg-primary: #f8fafc;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #e2e8f0;
+    --bg-glass: rgba(255, 255, 255, 0.75);
+    --border-color: rgba(15, 23, 42, 0.08);
+    --border-hover: rgba(15, 23, 42, 0.16);
+    
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    
+    --color-feature-bg: rgba(59, 130, 246, 0.1);
+    --color-issue-bg: rgba(239, 68, 68, 0.1);
+    --color-deprecation-bg: rgba(168, 85, 247, 0.1);
+    --color-other-bg: rgba(20, 184, 166, 0.1);
+}
+
+/* Theme Override Rules */
+body.light-mode .bg-glow {
+    opacity: 0.03;
+}
+
+body.light-mode .app-header {
+    background: rgba(248, 250, 252, 0.8);
+}
+
+body.light-mode .brand-text h1 {
+    background: linear-gradient(135deg, #0f172a 40%, #4f46e5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+body.light-mode .search-box,
+body.light-mode .sort-select,
+body.light-mode .tweet-input-wrapper,
+body.light-mode .modal-footer {
+    background: rgba(15, 23, 42, 0.04);
+}
+
+body.light-mode .search-box input,
+body.light-mode .sort-select,
+body.light-mode .tweet-input-wrapper textarea,
+body.light-mode .modal-header h2 {
+    color: #0f172a;
+}
+
+body.light-mode .modal-backdrop {
+    background: rgba(15, 23, 42, 0.4);
+}
+
+/* Theme Toggle Button Style */
+.btn-theme-toggle {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-fast);
+}
+
+.btn-theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-primary);
+    border-color: var(--border-hover);
+}
+
+body.light-mode .btn-theme-toggle {
+    background: rgba(15, 23, 42, 0.03);
+}
+
+body.light-mode .btn-theme-toggle:hover {
+    background: rgba(15, 23, 42, 0.06);
+}
+
 /* Global Reset */
 * {
     margin: 0;
