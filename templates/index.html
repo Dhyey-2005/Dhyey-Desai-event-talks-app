@@ -125,17 +125,21 @@
                     
                     <div class="toolbar-filters">
                         <div class="filter-group" id="filter-group">
-                            <button class="filter-btn active" data-filter="all">All Updates</button>
+                            <button class="filter-btn active" data-filter="all">
+                                <span>All Updates</span> <span class="filter-count" id="count-all"></span>
+                            </button>
                             <button class="filter-btn" data-filter="Feature">
-                                <span class="badge badge-feature"></span> Features
+                                <span class="badge badge-feature"></span> <span>Features</span> <span class="filter-count" id="count-feature"></span>
                             </button>
                             <button class="filter-btn" data-filter="Issue">
-                                <span class="badge badge-issue"></span> Issues
+                                <span class="badge badge-issue"></span> <span>Issues</span> <span class="filter-count" id="count-issue"></span>
                             </button>
                             <button class="filter-btn" data-filter="Deprecation">
-                                <span class="badge badge-deprecation"></span> Deprecations
+                                <span class="badge badge-deprecation"></span> <span>Deprecations</span> <span class="filter-count" id="count-deprecation"></span>
                             </button>
-                            <button class="filter-btn" data-filter="other">Others</button>
+                            <button class="filter-btn" data-filter="other">
+                                <span>Others</span> <span class="filter-count" id="count-other"></span>
+                            </button>
                         </div>
                         
                         <div class="sort-box">

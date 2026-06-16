@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSort = 'newest';
     let broadcastHistory = JSON.parse(localStorage.getItem('bq_broadcast_history') || '[]');
     let activeTweetNote = null;
+    let readNotes = new Set(JSON.parse(localStorage.getItem('bq_read_notes') || '[]'));
 
     // DOM Elements
     const skeletonFeed = document.getElementById('skeleton-feed');
@@ -80,8 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
             releaseNotes = result.data || [];
             filteredNotes = [...releaseNotes];
             
-            // Render Stats
+            // Render Stats & Filter Counts
             updateStatsSummary(releaseNotes);
+            updateFilterCounts();
             
             // Apply current filters, search, and sort
             applyFilters();
@@ -194,11 +196,13 @@ document.addEventListener('DOMContentLoaded', () => {
         notes.forEach(note => {
             const card = document.createElement('article');
             const typeClass = ['Feature', 'Issue', 'Deprecation'].includes(note.type) ? note.type : 'other';
-            card.className = `note-card note-card-${typeClass}`;
+            const isRead = readNotes.has(note.id);
+            card.className = `note-card note-card-${typeClass} ${isRead ? 'read' : ''}`;
             card.id = `note-${note.id}`;
             
-            // Format HTML content safe representation
-            // Determine type tag class
+            // Apply search term highlighting to body content safely
+            const highlightedContent = highlightSearchText(note.content, currentSearch);
+            
             card.innerHTML = `
                 <div class="card-header">
                     <div class="card-metadata">
@@ -206,6 +210,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="card-date">${note.date}</span>
                     </div>
                     <div class="card-actions-top">
+                        <button class="btn-card-action btn-card-read ${isRead ? 'active' : ''}" onclick="toggleReadStatus('${note.id}')" title="${isRead ? 'Mark as Unread' : 'Mark as Read'}">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="${isRead ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                        </button>
                         <button class="btn-card-action" onclick="copyCardLink('${note.link}', '${note.id}')" title="Copy link to this release note">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
@@ -215,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </button>
                     </div>
                 </div>
-                <div class="card-body">${note.content}</div>
+                <div class="card-body">${highlightedContent}</div>
                 <div class="card-footer">
                     <div class="card-footer-left">
                         <button class="btn-card-action" onclick="copyCardText('${note.id}')" title="Copy text of update">
@@ -239,6 +249,65 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Helper functions for card events (exposed to window)
+    window.toggleReadStatus = (id) => {
+        if (readNotes.has(id)) {
+            readNotes.delete(id);
+            showToast('Marked update as unread', 'info');
+        } else {
+            readNotes.add(id);
+            showToast('Marked update as read', 'success');
+        }
+        localStorage.setItem('bq_read_notes', JSON.stringify(Array.from(readNotes)));
+        applyFilters();
+    };
+
+    function updateFilterCounts() {
+        const counts = { all: releaseNotes.length, Feature: 0, Issue: 0, Deprecation: 0, other: 0 };
+        
+        releaseNotes.forEach(note => {
+            if (note.type === 'Feature') counts.Feature++;
+            else if (note.type === 'Issue') counts.Issue++;
+            else if (note.type === 'Deprecation') counts.Deprecation++;
+            else counts.other++;
+        });
+        
+        document.getElementById('count-all').textContent = `(${counts.all})`;
+        document.getElementById('count-feature').textContent = `(${counts.Feature})`;
+        document.getElementById('count-issue').textContent = `(${counts.Issue})`;
+        document.getElementById('count-deprecation').textContent = `(${counts.Deprecation})`;
+        document.getElementById('count-other').textContent = `(${counts.other})`;
+    }
+
+    function highlightSearchText(html, query) {
+        if (!query || query.trim() === '') return html;
+        
+        // Escape special regex characters in search query
+        const escapedQuery = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        const regex = new RegExp(`(${escapedQuery})`, 'gi');
+        
+        // Parse the html string into a temporary DOM structure
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        
+        // Helper to traverse text nodes only
+        function traverse(node) {
+            if (node.nodeType === Node.TEXT_NODE) {
+                const text = node.textContent;
+                if (regex.test(text)) {
+                    const span = document.createElement('span');
+                    span.innerHTML = text.replace(regex, '<mark class="search-highlight">$1</mark>');
+                    node.parentNode.replaceChild(span, node);
+                }
+            } else {
+                const children = Array.from(node.childNodes);
+                children.forEach(traverse);
+            }
+        }
+        
+        traverse(tempDiv);
+        return tempDiv.innerHTML;
+    }
+
     window.copyCardText = (id) => {
         const note = releaseNotes.find(n => n.id === id);
         if (!note) return;
