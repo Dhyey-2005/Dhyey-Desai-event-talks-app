@@ -62,7 +62,7 @@ python app.py
 ```
 
 By default, the server starts in debug mode on port 5000:
-👉 **[http://127.0.0.1:5000](http://127.0.0.1:5000)**
+👉 **[http://127.0.0.1:5000](https://event-talks-app.vercel.app)**
 
 ---
 
